@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t tom751/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true tom751/react-test npm test
+
+after_success:
+    - docker build -t tom751/multi-client ./client
+    - docker build -t tom751/multi-nginx ./nginx
+    - docker build -t tom751/multi-server ./server
+    - docker build -t tom751/multi-worker ./worker
+    # login to docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # push to docker hub
+    - docker push tom751/multi-client
+    - docker push tom751/multi-nginx
+    - docker push tom751/multi-server
+    - docker push tom751/multi-worker
